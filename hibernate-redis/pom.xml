@@ -3,20 +3,34 @@
     <parent>
         <groupId>com.github.debop</groupId>
         <artifactId>hibernate-redis-parent</artifactId>
-        <version>1.6.3-SNAPSHOT</version>
+        <version>1.6.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>hibernate-redis</artifactId>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
 
     <name>hibernate-redis</name>
     <url>https://github.com/debop/hibernate-redis</url>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+		<project.build.bundle.symbolicname>com.github.debop.hibernate-redis</project.build.bundle.symbolicname>
+		<project.build.bundle.name>${project.name}</project.build.bundle.name>
+		<project.build.bundle.version>${project.version}</project.build.bundle.version>
+		<project.build.export.package>
+			org.hibernate.cache.redis*;version="${project.version}";-split-package:=merge-first
+		</project.build.export.package>
+		<project.build.import.package>
+			!org.hibernate.cache.redis*,
+			*
+		</project.build.import.package>
+		<project.build.private.package></project.build.private.package>
+		<project.build.embed.dependency>*;scope=compile|runtime;type=!pom</project.build.embed.dependency>
+		<project.build.embed.transitive>true</project.build.embed.transitive>
+		<unpack-bundle>true</unpack-bundle>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
     <dependencies>
         <!-- Hibernate -->
@@ -29,10 +43,12 @@
                     <artifactId>jboss-logging</artifactId>
                 </exclusion>
             </exclusions>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -63,10 +79,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- project lombok -->
@@ -163,4 +181,67 @@
         </dependency>
 
     </dependencies>
+
+	<build>
+		<plugins>
+		<!--
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>net.sf.ehcache:ehcache-core</include>
+								</includes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>net.sf.ehcache:ehcache-core</artifact>
+									<excludes>
+										<exclude>**</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+							<createDependencyReducedPom>true</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			-->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<supportedProjectTypes>
+						<supportedProjectType>jar</supportedProjectType>
+						<supportedProjectType>bundle</supportedProjectType>
+					</supportedProjectTypes>
+					<instructions>
+						<Bundle-SymbolicName>${project.build.bundle.symbolicname}</Bundle-SymbolicName>
+						<Bundle-Description>${project.build.bundle.version}</Bundle-Description>
+						<Bundle-Classpath>.</Bundle-Classpath>
+						<Export-Package>${project.build.export.package}</Export-Package>
+						<Import-Package>${project.build.import.package}</Import-Package>
+						<Private-Package>${project.build.private.package}</Private-Package>
+						<Implementation-Version>${project.version}</Implementation-Version>
+						<Implementation-Vendor>debop hibernate-redis</Implementation-Vendor>
+						<Embed-Dependency>${project.build.embed.dependency}</Embed-Dependency>
+						<Embed-Directory>${project.build.embed.directory}</Embed-Directory>
+						<Embed-Transitive>${project.build.embed.transitive}</Embed-Transitive>
+						<_exportcontents>${export.packages}</_exportcontents>
+						<_versionpolicy>[$(version;==;$(@)),$(version;+;$(@)))</_versionpolicy>
+						<_removeheaders>Ignore-Package,Include-Resource,Private-Package</_removeheaders>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
